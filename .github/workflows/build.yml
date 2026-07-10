@@ -1,7 +1,5 @@
 name: Build Bazzite
 on:
-  schedule:
-    - cron: "40 4 * * 1" # 4:40 utc monday
   pull_request:
     branches:
       - testing
@@ -566,24 +564,24 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-  generate_release:
-    name: Generate Release
-    needs: [push-ghcr]
-    if: github.event_name != 'pull_request'
-    permissions:
-      contents: write
-    secrets: inherit
-    uses: ./.github/workflows/generate_release.yml
+  # generate_release:
+  #   name: Generate Release
+  #   needs: [push-ghcr]
+  #   if: github.event_name != 'pull_request'
+  #   permissions:
+  #     contents: write
+  #   secrets: inherit
+  #   uses: ./.github/workflows/generate_release.yml
 
-  kickoff_bazzite_dx:
-    runs-on: ubuntu-24.04
-    needs: [generate_release]
-    if: github.repository == 'ublue-os/bazzite' && github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    steps:
-      - name: Kickoff Bazzite-DX
-        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4
-        continue-on-error: true
-        with:
-          token: ${{ secrets.PAT }}
-          repository: ublue-os/bazzite-dx
-          event-type: build
+  # kickoff_bazzite_dx:
+  #   runs-on: ubuntu-24.04
+  #   needs: [generate_release]
+  #   if: github.repository == 'ublue-os/bazzite' && github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+  #   steps:
+  #     - name: Kickoff Bazzite-DX
+  #       uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4
+  #       continue-on-error: true
+  #       with:
+  #         token: ${{ secrets.PAT }}
+  #         repository: ublue-os/bazzite-dx
+  #         event-type: build
