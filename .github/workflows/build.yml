@@ -57,11 +57,12 @@ jobs:
       matrix:
         image:
           - bazzite
-          - bazzite-gnome
-          - bazzite-nvidia
-          - bazzite-gnome-nvidia
-          - bazzite-nvidia-open
-          - bazzite-gnome-nvidia-open
+          - bazzite-niri
+          # - bazzite-gnome
+          # - bazzite-nvidia
+          # - bazzite-gnome-nvidia
+          # - bazzite-nvidia-open
+          # - bazzite-gnome-nvidia-open
         include:
           - fedora_version: 44
             kernel_flavor: ogc
@@ -102,9 +103,12 @@ jobs:
           IMAGE="${{ matrix.image }}"
           if [[ "$IMAGE" == *gnome* ]]; then
             BASE_IMAGE_NAME="silverblue"
+          elif [[ "$IMAGE" == *niri* ]]; then
+            BASE_IMAGE_NAME="sway"
           else
             BASE_IMAGE_NAME="kinoite"
           fi
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
           echo "base_image_name=$BASE_IMAGE_NAME" >> "$GITHUB_OUTPUT"
 
           #

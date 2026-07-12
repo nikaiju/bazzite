@@ -23,17 +23,19 @@ xargs -r flatpak install -y --noninteractive <"/src/$FLATPAK_DIR_SHORTNAME/flatp
 
 # Pull the container image to be installed
 if mountpoint -q /usr/lib/containers/storage; then
-    # We load our image from the host container storage if possible
-    podman save --format oci-archive "$INSTALL_IMAGE_PAYLOAD" | podman load --storage-opt additionalimagestore=''
+  # We load our image from the host container storage if possible
+  podman save --format oci-archive "$INSTALL_IMAGE_PAYLOAD" | podman load --storage-opt additionalimagestore=''
 else
-    podman pull "$INSTALL_IMAGE_PAYLOAD"
+  podman pull "$INSTALL_IMAGE_PAYLOAD"
 fi
 
 # Determine desktop environment
 if [[ ${BASE_IMAGE} == *-gnome* ]]; then
-    desktop_env="gnome"
+  desktop_env="gnome"
+elif [[ ${BASE_IMAGE} == "*-niri*" ]]; then
+  desktop_env="niri"
 else
-    desktop_env="kde"
+  desktop_env="kde"
 fi
 
 # Copy system files
@@ -41,11 +43,14 @@ echo "Copying shared system files..."
 cp -a /src/system_files/shared/. /
 
 if [[ "$desktop_env" == "gnome" ]]; then
-    echo "Copying GNOME-specific system files..."
-    cp -a /src/system_files/gnome/. /
+  echo "Copying GNOME-specific system files..."
+  cp -a /src/system_files/gnome/. /
 elif [[ "$desktop_env" == "kde" ]]; then
-    echo "Copying KDE-specific system files..."
-    cp -a /src/system_files/kde/. /
+  echo "Copying KDE-specific system files..."
+  cp -a /src/system_files/kde/. /
+elif [[ "$desktop_env" == "niri" ]]; then
+  echo "Copying niri-specific system files..."
+  cp -a /src/system_files/niri/. /
 fi
 
 # Run the preinitramfs hook
@@ -55,15 +60,15 @@ fi
 dnf install -y dracut-live
 kernel=$(kernel-install list --json pretty | jq -r '.[] | select(.has_kernel == true) | .version')
 DRACUT_NO_XATTR=1 dracut -v --force --zstd --reproducible --no-hostonly \
-    --add "dmsquash-live dmsquash-live-autooverlay" \
-    "/usr/lib/modules/${kernel}/initramfs.img" "${kernel}"
+  --add "dmsquash-live dmsquash-live-autooverlay" \
+  "/usr/lib/modules/${kernel}/initramfs.img" "${kernel}"
 
 # Install livesys-scripts and configure them
 dnf install -y livesys-scripts
 if [[ ${BASE_IMAGE} == *-gnome* ]]; then
-    sed -i "s/^livesys_session=.*/livesys_session=gnome/" /etc/sysconfig/livesys
+  sed -i "s/^livesys_session=.*/livesys_session=gnome/" /etc/sysconfig/livesys
 else
-    sed -i "s/^livesys_session=.*/livesys_session=kde/" /etc/sysconfig/livesys
+  sed -i "s/^livesys_session=.*/livesys_session=kde/" /etc/sysconfig/livesys
 fi
 systemctl enable livesys.service livesys-late.service
 
